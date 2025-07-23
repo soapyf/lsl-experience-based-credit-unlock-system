@@ -1,18 +1,20 @@
 // Admin tool for managing credits and unlocks for agents in an experience
 // target_agent is set to owner as an example but an agent selector could be implemented
 // If you use this code keep in mind that there is a limit of ~4096 characters for each keypair value so you should keep unlock names as short as possible
+// Some code in this script requires the firestorm LSL preprocessor to work correctly
+
+#define CHANNEL -91516
+#define BAD_JSON [JSON_INVALID, JSON_NULL]
+#define PREFIX "data_"   // Prefix for experience data keys   "data_6f37a320-820e-426f-9e5c-716700e65afc" = {"credits": "0", "unlocks": ""}
 
 string target_agent;
+string mode;
 
 key dataRead;
 key dataWrite;
 
-string mode;
+list DEFAULT_DATA = ["credits", "0", "unlocks", ""];
 
-#define DEFAULT_DATA ["credits", "0", "unlocks", ""]
-#define CHANNEL -91516
-#define BAD_JSON [JSON_INVALID, JSON_NULL]
-#define PREFIX "data_"   // Prefix for experience data keys   "data_6f37a320-820e-426f-9e5c-716700e65afc" = {"credits": "0", "unlocks": ""}
 
 write_experience_data()
 {
