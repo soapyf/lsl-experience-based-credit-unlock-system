@@ -14,6 +14,18 @@ string mode;
 #define BAD_JSON [JSON_INVALID, JSON_NULL]
 #define PREFIX "data_"   // Prefix for experience data keys   "data_6f37a320-820e-426f-9e5c-716700e65afc" = {"credits": "0", "unlocks": ""}
 
+write_experience_data()
+{
+    list data;
+    integer i = llGetListLength(DEFAULT_DATA);
+    integer x; for(; x < i; x += 2)
+    {
+        string name = llList2String(DEFAULT_DATA, x);
+        string value = llLinksetDataRead(name);
+        data += [name, value];
+    }
+    dataWrite = llUpdateKeyValue(PREFIX+target_agent, llList2Json(JSON_OBJECT, data), FALSE, "");
+}
 default
 {
     state_entry()
@@ -45,11 +57,11 @@ default
             {
                 integer malformed;
                 
-                string current_credits = llJsonGetValue(jsonData, ["credits"]);
-                string current_unlocks = llJsonGetValue(jsonData, ["unlocks"]);
+                string credits = llJsonGetValue(jsonData, ["credits"]);
+                string unlocks = llJsonGetValue(jsonData, ["unlocks"]);
 
                 // Check the retrieved data structure 
-                if(llListFindList(BAD_JSON, [current_credits]) != -1  || llListFindList(BAD_JSON, [current_unlocks]) != -1)
+                if(llListFindList(BAD_JSON, [credits]) != -1  || llListFindList(BAD_JSON, [unlocks]) != -1)
                 {
                     malformed = TRUE;
                 }
@@ -68,18 +80,18 @@ default
                 else 
                 {
                     // Store current credits and unlocks in linkset data
-                    llLinksetDataWrite("current_credits", current_credits);
-                    llLinksetDataWrite("current_unlocks", current_unlocks);
+                    llLinksetDataWrite("credits", credits);
+                    llLinksetDataWrite("unlocks", unlocks);
 
                     // Notify the owner with a dialog containing the retrieved data
                     llListen(CHANNEL, "", llGetOwner(), "");
                     llDialog(llGetOwner(), 
                         "Experience Data Retrieved" + "\n\n" + 
                         "Agent: " + (string)target_agent + "\n" + 
-                        "Credits: " + llLinksetDataRead("current_credits") + "\n" +
+                        "Credits: " + llLinksetDataRead("credits") + "\n" +
 
                         // Include the unlocks for demonstration but this will most likely get too long and cause an error when trying to display a dialog
-                        "Unlocks: " + llLinksetDataRead("current_unlocks")
+                        "Unlocks: " + llLinksetDataRead("unlocks")
                         ,
                         ["Edit", "Reset", "Close"]
                         ,
@@ -135,8 +147,8 @@ default
             // Open the experience data editor dialog
             llDialog(llGetOwner(),
                 "Edit Experience Data for Agent: " + (string)target_agent + "\n\n" +
-                "Current Credits: " + llLinksetDataRead("current_credits") + "\n" +
-                "Current Unlocks: " + llLinksetDataRead("current_unlocks") + "\n\n",
+                "Current Credits: " + llLinksetDataRead("credits") + "\n" +
+                "Current Unlocks: " + llLinksetDataRead("unlocks") + "\n\n",
                 ["Credits","Unlocks","Close"], CHANNEL
             );
         }
@@ -169,7 +181,7 @@ default
             mode = "credits";
             llDialog(llGetOwner(),
                 "Edit Credits for Agent: " + (string)target_agent + "\n\n" +
-                "Current Credits: " + llLinksetDataRead("current_credits") + "\n\n",
+                "Current Credits: " + llLinksetDataRead("credits") + "\n\n",
                 ["Add", "Remove", "Cancel"], CHANNEL
             );
         }
@@ -179,7 +191,7 @@ default
             mode = "unlocks";
             llDialog(llGetOwner(),
                 "Edit Unlocks for Agent: " + (string)target_agent + "\n\n" +
-                "Current Unlocks: " + llLinksetDataRead("current_unlocks") + "\n\n",
+                "Current Unlocks: " + llLinksetDataRead("unlocks") + "\n\n",
                 ["Add", "Remove", "Cancel"], CHANNEL
             );
             
@@ -218,26 +230,28 @@ default
             if(mode == "+credits")
             {
                 // Add credits
-                integer credits = (integer)llLinksetDataRead("current_credits");
+                integer credits = (integer)llLinksetDataRead("credits");
                 credits += (integer)llLinksetDataRead("temp_data");
                 llOwnerSay("Adding "+ llLinksetDataRead("temp_data") + " credits to agent: " + (string)target_agent);
-                dataWrite = llUpdateKeyValue(PREFIX+target_agent, llList2Json(JSON_OBJECT, ["credits", (string)credits, "unlocks", llLinksetDataRead("current_unlocks")]), FALSE, "");
+                llLinksetDataWrite("credits", (string)credits);
+                write_experience_data();
             }
             else if(mode == "-credits")
             {
                 // Remove credits
-                integer credits = (integer)llLinksetDataRead("current_credits");
+                integer credits = (integer)llLinksetDataRead("credits");
                 credits -= (integer)llLinksetDataRead("temp_data");
                 if(credits < 0) credits = 0; // Ensure credits do not go negative
                 llOwnerSay("Removing " + llLinksetDataRead("temp_data") + " credits from agent: " + (string)target_agent);
-                dataWrite = llUpdateKeyValue(PREFIX+target_agent, llList2Json(JSON_OBJECT, ["credits", (string)credits, "unlocks", llLinksetDataRead("current_unlocks")]), FALSE, "");
+                llLinksetDataWrite("credits", (string)credits);
+                write_experience_data();
                 
             }
             else if(mode == "+unlocks")
             {
                 // Add unlocks
                 list unlocksToAdd = llCSV2List(llLinksetDataRead("temp_data"));
-                list currentUnlocks = llCSV2List(llLinksetDataRead("current_unlocks"));
+                list currentUnlocks = llCSV2List(llLinksetDataRead("unlocks"));
 
                 // Ensure no duplicates
                 integer i = llGetListLength(unlocksToAdd);
@@ -255,14 +269,15 @@ default
                     }
                 }
                 llOwnerSay("Adding unlocks: " + llDumpList2String(unlocksToAdd, ", ") + " to agent: " + (string)target_agent);
-                dataWrite = llUpdateKeyValue(PREFIX+target_agent, llList2Json(JSON_OBJECT, ["credits", llLinksetDataRead("current_credits"), "unlocks", llList2CSV(currentUnlocks)]), FALSE, "");
+                llLinksetDataWrite("unlocks", llList2CSV(currentUnlocks));
+                write_experience_data();
                 
             }
             else if(mode == "-unlocks")
             {
                 // Remove unlocks
                 list unlocksToRemove = llCSV2List(llLinksetDataRead("temp_data"));
-                list currentUnlocks = llCSV2List(llLinksetDataRead("current_unlocks"));
+                list currentUnlocks = llCSV2List(llLinksetDataRead("unlocks"));
                 
                 integer i = llGetListLength(unlocksToRemove);
                 while(i--)
@@ -275,7 +290,8 @@ default
                     }
                 }
                 llOwnerSay("Removing unlocks: " + llDumpList2String(unlocksToRemove, ", ") + " from agent: " + (string)target_agent);
-                dataWrite = llUpdateKeyValue(PREFIX+target_agent, llList2Json(JSON_OBJECT, ["credits", llLinksetDataRead("current_credits"), "unlocks", llList2CSV(currentUnlocks)]), FALSE, "");
+                llLinksetDataWrite("unlocks", llList2CSV(currentUnlocks));
+                write_experience_data();
                 
             }
             mode = ""; 
