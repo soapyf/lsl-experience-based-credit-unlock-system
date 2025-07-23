@@ -99,6 +99,7 @@ default
             }
             else
             {
+                // Unrecognized query ID
                 llOwnerSay("Data request was not recognized.");
                 llOwnerSay("Query ID: " + (string)queryid);
                 llOwnerSay("Data: " + jsonData);
@@ -277,7 +278,7 @@ default
                 dataWrite = llUpdateKeyValue(PREFIX+target_agent, llList2Json(JSON_OBJECT, ["credits", llLinksetDataRead("current_credits"), "unlocks", llList2CSV(currentUnlocks)]), FALSE, "");
                 
             }
-            mode = ""; // Reset mode
+            mode = ""; 
         }
         else
         {
