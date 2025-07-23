@@ -1,5 +1,6 @@
 // Admin tool for managing credits and unlocks for agents in an experience
 // target_agent is set to owner as an example but an agent selector could be implemented
+// If you use this code keep in mind that there is a limit of ~4096 characters for each keypair value so you should keep unlock names as short as possible
 
 string target_agent;
 
