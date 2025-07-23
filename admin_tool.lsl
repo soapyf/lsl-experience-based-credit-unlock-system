@@ -1,4 +1,5 @@
-
+// Admin tool for managing credits and unlocks for agents in an experience
+// target_agent is set to owner as an example but an agent selector could be implemented
 
 string target_agent;
 
