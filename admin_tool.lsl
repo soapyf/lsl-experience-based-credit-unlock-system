@@ -61,7 +61,7 @@ integer read_json_data(string json)
 
 dialog_menu(string menu, string text)
 {
-    list buttons = llCSV2List(llLinksetDataRead("buttons")); llOwnerSay("Buttons: " + llDumpList2String(buttons, ", "));
+    list buttons = llCSV2List(llLinksetDataRead("buttons"));
     // Preform some dialog text if not provided
     if(text == ""){
         text = "Experience Data for Agent secondlife:///app/agent/"+target_agent+"/about \n\n";
