@@ -7,14 +7,14 @@
 #define BAD_JSON [JSON_INVALID, JSON_NULL]
 #define PREFIX "data_"   // Prefix for experience data keys   "data_6f37a320-820e-426f-9e5c-716700e65afc" = {"credits": "0", "unlocks": ""}
 
+// json values that you want treated as numbers need to have a number included in the DEFAULT_DATA list otherwise they will be treated as CSV's
+list DEFAULT_DATA = ["credits", "0", "unlocks", "", "fruit", "0"];
+
 string target_agent;
 string mode;
 
 key dataRead;
 key dataWrite;
-
-// json values that you want treated as numbers need to have a number included in the DEFAULT_DATA list otherwise they will be treated as CSV's
-list DEFAULT_DATA = ["credits", "0", "unlocks", "", "fruit", "0"];
 
 
 write_experience_data()
